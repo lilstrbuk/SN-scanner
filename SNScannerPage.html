@@ -46,11 +46,18 @@
             })
             .catch((err) => {
                 console.error('Error accessing webcam:', err);
+                alert('Unable to access webcam. Please check your camera settings.');
             });
 
         // Capture the image and run OCR
         captureButton.addEventListener('click', () => {
             // Set canvas dimensions to match the video
+            if (video.videoWidth === 0 || video.videoHeight === 0) {
+                console.error('Video dimensions not available. Make sure webcam is connected and active.');
+                alert('Webcam is not available. Please ensure it is properly connected.');
+                return;
+            }
+
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
@@ -83,6 +90,7 @@
                 console.log('Extracted Text:', cleanedText);
             }).catch((err) => {
                 console.error('Error during OCR:', err);
+                alert('Error occurred during OCR. Please try again.');
             });
         });
     </script>
