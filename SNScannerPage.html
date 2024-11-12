@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Webcam Serial Number Scanner</title>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.1/dist/tesseract.min.js"></script>
+    <script>
+        const Tesseract = window.Tesseract;
+    </script>
     <style>
         #video {
             border: 2px solid #000;
@@ -14,10 +17,10 @@
         #roi {
             position: absolute;
             border: 2px solid green;
-            width: 50%;
-            height: 20%;
-            top: 40%;
-            left: 25%;
+            width: 320px;
+            height: 96px;
+            top: calc(50% - 48px);
+            left: calc(50% - 160px);
             pointer-events: none;
         }
         #canvas {
@@ -28,7 +31,8 @@
 <body>
     <h1>Webcam Serial Number Scanner</h1>
     <video id="video" autoplay></video>
-    <div id="roi"></div>
+        <div id="roi" style="position: absolute; top: 40%; left: 25%; width: 320px; height: 96px; border: 2px solid green; pointer-events: none;"></div>
+    
     <button id="captureButton">Capture and Scan</button>
     <p id="result">Extracted Serial Number: <span id="extractedText"></span></p>
 
@@ -42,6 +46,7 @@
         // Start the video stream
         navigator.mediaDevices.getUserMedia({ video: true })
             .then((stream) => {
+                console.log('Webcam stream started');
                 video.srcObject = stream;
             })
             .catch((err) => {
@@ -58,6 +63,7 @@
                 return;
             }
 
+            console.log('Capturing image from video stream');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
@@ -71,6 +77,8 @@
             const roiX = canvas.width * 0.25;
             const roiY = canvas.height * 0.4;
 
+            console.log(`ROI coordinates: x=${roiX}, y=${roiY}, width=${roiWidth}, height=${roiHeight}`);
+
             // Get the ROI from the canvas
             const roi = ctx.getImageData(roiX, roiY, roiWidth, roiHeight);
 
@@ -81,8 +89,9 @@
             const roiCtx = roiCanvas.getContext('2d');
             roiCtx.putImageData(roi, 0, 0);
 
+            console.log('Running OCR on captured ROI');
             // Use Tesseract.js to extract text from the ROI
-            tesseract.recognize(roiCanvas, 'eng', {
+            Tesseract.recognize(roiCanvas, 'eng', {
                 logger: (m) => console.log(m),
             }).then(({ data: { text } }) => {
                 const cleanedText = text.replace(/[^A-Za-z0-9\-\s]/g, '').trim();
